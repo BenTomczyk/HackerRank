@@ -5,6 +5,7 @@ import os
 import random
 import re
 import sys
+import bisect
 
 #
 # Complete the 'activityNotifications' function below.
@@ -17,17 +18,18 @@ import sys
 
 
 def activityNotifications(expenditure, d):
-    notif = 0
-    for i in range(len(expenditure) - d):
-        if (d % 2 != 0):
-            window = expenditure[i:i+d]
-            window.sort()
-            median = window[d//2]
-        else:
-            median = sum(expenditure[i:i+d])/d
-        if expenditure[i+d] >= median*2:
-            notif += 1
-    return notif
+    history = sorted(expenditure[:d])
+    # If d is odd: median of history == history[a] == history[b]
+    # If d is even: median of history == (history[a] + history[b]) / 2
+    a = math.ceil((d-1)/2)
+    b = math.floor((d-1)/2)
+    count = 0
+    for i in range(len(expenditure)-d):
+        count += (history[a] + history[b] <= expenditure[i+d])
+        # Update history while keeping it sorted.
+        history.pop(bisect.bisect_left(history, expenditure[i]))
+        bisect.insort(history, expenditure[i+d])
+    return count
 
 
 if __name__ == '__main__':
